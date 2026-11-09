@@ -1,7 +1,7 @@
 // ===== 1) ข้อมูลทัวร์ (อยากเพิ่มทัวร์ใหม่ ให้ copy ก้อน { } แล้วแก้ข้อมูลได้เลย) =====
 const tours = [
   {
-    id: "japan", country: "ญี่ปุ่น", color: "#d4506b",
+    id: "japan", photo: photos.japan,country: "ญี่ปุ่น", color: "#d4506b",
     title: "โตเกียว – ฟูจิ – เกียวโต", days: 6, price: 45900, walk: "เดินวันละ ~8,000 ก้าว",
     summary: "เมืองใหญ่ ภูเขาไฟ และวัดเก่า นั่งชินคันเซนระหว่างเมืองสบาย ๆ",
     plan: [
@@ -12,7 +12,7 @@ const tours = [
     ]
   },
   {
-    id: "vietnam", country: "เวียดนาม", color: "#2f8050",
+    id: "vietnam", photo: photos.vietnam, country: "เวียดนาม", color: "#2f8050",
     title: "ฮานอย – ฮาลอง – ดานัง", days: 5, price: 19900, walk: "เดินวันละ ~6,000 ก้าว",
     summary: "ทริปประหยัดงบ ได้ทั้งทะเล เมืองเก่า และอาหารอร่อย",
     plan: [
@@ -23,7 +23,7 @@ const tours = [
     ]
   },
   {
-    id: "italy", country: "อิตาลี", color: "#b0710c",
+    id: "italy", photo: photos.italy, country: "อิตาลี", color: "#b0710c",
     title: "โรม – ฟลอเรนซ์ – เวนิส", days: 8, price: 79900, walk: "เดินวันละ ~10,000 ก้าว",
     summary: "เมืองประวัติศาสตร์และศิลปะ เดินเยอะหน่อย แต่ทุกมุมคุ้มค่า",
     plan: [
@@ -34,7 +34,7 @@ const tours = [
     ]
   },
   {
-    id: "swiss", country: "สวิตเซอร์แลนด์", color: "#3b78c9",
+    id: "swiss", photo: photos.swiss,  country: "สวิตเซอร์แลนด์", color: "#3b78c9",
     title: "ซูริก – ลูเซิร์น – ยุงเฟรา", days: 7, price: 89900, walk: "เดินวันละ ~7,000 ก้าว",
     summary: "ภูเขาหิมะและทะเลสาบ เดินทางด้วยรถไฟชมวิวตลอดทาง",
     plan: [
@@ -81,6 +81,8 @@ const nameInput    = document.getElementById("nameInput");
 const historyList  = document.getElementById("historyList");
 const ticketDialog = document.getElementById("ticketDialog");
 const ticketBox    = document.getElementById("ticketContent");
+const cancelDialog = document.getElementById("cancelDialog");
+const cancelBox    = document.getElementById("cancelContent");
 
 let authMode = "login"; // "login" หรือ "register"
 
@@ -224,7 +226,50 @@ historyList.addEventListener("click", event => {
 [authDialog, ticketDialog].forEach(d => d.addEventListener("click", event => {
   if (event.target === d || event.target.dataset.close !== undefined) d.close();
 }));
- 
+
+ // ===== นโยบายยกเลิก: ยกเลิกก่อนวันเดินทางกี่วัน -> คืนเงินกี่ % (แก้ตัวเลขได้ตามต้องการ) =====
+const REFUND_RULES = [
+  { minDays: 30, percent: 100 },
+  { minDays: 15, percent: 50 },
+  { minDays: 1,  percent: 0 }
+];
+// คำนวณวันที่เหลือก่อนเดินทาง และยอดที่ได้คืน (ตั๋วเก่าที่ไม่มีวันเดินทางจะคืนเต็มจำนวน)
+function refundInfo(b) {
+  if (!b.travelDate) return { daysLeft: null, percent: 100, amount: b.total };
+  const daysLeft = Math.round((parseDay(b.travelDate) - startOfToday()) / 86400000);
+  const rule = REFUND_RULES.find(r => daysLeft >= r.minDays);
+  const percent = rule ? rule.percent : 0;
+  return { daysLeft, percent, amount: Math.round(b.total * percent / 100) };
+}
+
+// ยกเลิกได้เมื่อยังไม่ถูกยกเลิก และยังไม่ถึงวันเดินทาง
+const canCancel = b => b.status !== "cancelled" && (!b.travelDate || refundInfo(b).daysLeft >= 1);
+
+// ประวัติการจอง (เรียงจากใหม่ไปเก่า เฉพาะของคนที่ล็อกอินอยู่)
+function renderHistory() {
+  const user = currentUser();
+  if (!user) {
+    historyList.innerHTML = `<p class="empty"><button class="link-btn dark" data-auth="login">เข้าสู่ระบบ</button> เพื่อดูประวัติการจองและตั๋วของคุณ</p>`;
+    return;
+  }
+  const mine = load("st_bookings", []).filter(b => b.email === user.email).reverse();
+  historyList.innerHTML = mine.length ? mine.map(b => {
+    const t = tours.find(item => item.id === b.tourId);
+    const cancelled = b.status === "cancelled";
+    return `
+      <article class="history-item ${cancelled ? "cancelled" : ""}" style="--theme:${t.color}">
+        <div>
+          <strong>${t.country} – ${t.title}</strong>
+          <small>รหัส ${b.code} · ${b.travelDate ? `เดินทาง ${formatDay(b.travelDate)}` : `จองเมื่อ ${formatDate(b.date)}`} · ${b.people} คน · ${formatPrice(b.total)}</small>
+          ${cancelled ? `<small class="badge">ยกเลิกแล้ว ${formatDate(b.cancelledAt)} · คืนเงิน ${formatPrice(b.refund)}</small>` : ""}
+        </div>
+        ${cancelled ? "" : `<div class="history-actions">
+          <button class="btn small" data-ticket="${b.code}">ดูตั๋ว</button>
+          ${canCancel(b) ? `<button class="btn small ghost" data-cancel="${b.code}">ยกเลิก</button>` : ""}
+        </div>`}
+      </article>`;
+  }).join("") : `<p class="empty">ยังไม่มีประวัติการจอง เลือกแพ็กเกจที่ชอบแล้วจองได้เลย</p>`;
+}
 // ===== ยกเลิกการจอง: กดยกเลิก -> หน้าต่างยืนยัน -> เปลี่ยนสถานะเป็น "ยกเลิกแล้ว" (ยังเก็บไว้ในประวัติ) =====
 function openCancel(code) {
   const user = currentUser();
