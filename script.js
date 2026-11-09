@@ -224,7 +224,44 @@ historyList.addEventListener("click", event => {
 [authDialog, ticketDialog].forEach(d => d.addEventListener("click", event => {
   if (event.target === d || event.target.dataset.close !== undefined) d.close();
 }));
+ 
+// ===== ยกเลิกการจอง: กดยกเลิก -> หน้าต่างยืนยัน -> เปลี่ยนสถานะเป็น "ยกเลิกแล้ว" (ยังเก็บไว้ในประวัติ) =====
+function openCancel(code) {
+  const user = currentUser();
+  const b = load("st_bookings", []).find(x => x.code === code);
+  if (!user || !b || b.email !== user.email || !canCancel(b)) return;
+  const t = tours.find(item => item.id === b.tourId);
+  const r = refundInfo(b);
+  cancelBox.innerHTML = `
+    <h3>ยกเลิกการจอง?</h3>
+    <p>${t.country} – ${t.title}<br>รหัส ${b.code}${b.travelDate ? ` · เดินทาง ${formatDay(b.travelDate)}` : ""}</p>
+    <p class="refund-note">${r.daysLeft === null ? "" : `เหลืออีก ${r.daysLeft} วันก่อนเดินทาง · `}จะได้รับเงินคืน <strong>${formatPrice(r.amount)}</strong>${r.percent < 100 ? ` (${r.percent}% ของ ${formatPrice(b.total)})` : ""}</p>
+    <p class="empty">ยกเลิกแล้วจะกู้คืนตั๋วไม่ได้</p>
+    <div class="dialog-actions">
+      <button class="btn danger" data-confirm-cancel="${b.code}">ยืนยันยกเลิก</button>
+      <button class="btn ghost" data-close>ไม่ยกเลิก</button>
+    </div>`;
+  cancelDialog.style.setProperty("--theme", t.color);
+  ticketDialog.close();
+  if (!cancelDialog.open) cancelDialog.showModal();
+}
 
+function confirmCancel(code) {
+  const user = currentUser();
+  const all = load("st_bookings", []);
+  const b = all.find(x => x.code === code);
+  if (!user || !b || b.email !== user.email || !canCancel(b)) return;
+  const r = refundInfo(b);
+  b.status = "cancelled";
+  b.cancelledAt = new Date().toISOString();
+  b.refund = r.amount;
+  save("st_bookings", all);
+  renderHistory();
+  cancelBox.innerHTML = `
+    <h3>ยกเลิกเรียบร้อยแล้ว</h3>
+    <p>การจองรหัส ${b.code} ถูกยกเลิก จะคืนเงิน <strong>${formatPrice(r.amount)}</strong></p>
+    <div class="dialog-actions"><button class="btn" data-close>ตกลง</button></div>`;
+}
 // ===== 3) สร้างปุ่มกรองประเทศ =====
 function renderFilters() {
   const names = ["ทั้งหมด", ...tours.map(t => t.country)];
