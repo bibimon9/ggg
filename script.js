@@ -307,6 +307,58 @@ function confirmCancel(code) {
     <p>การจองรหัส ${b.code} ถูกยกเลิก จะคืนเงิน <strong>${formatPrice(r.amount)}</strong></p>
     <div class="dialog-actions"><button class="btn" data-close>ตกลง</button></div>`;
 }
+
+// ===== 2.6) ปฏิทินเลือกวันเดินทาง (จองล่วงหน้าอย่างน้อย MIN_DAYS วัน ไม่เกิน MAX_DAYS วัน) =====
+const MIN_DAYS = 7, MAX_DAYS = 365;
+const calendarBox = document.getElementById("calendar");
+const tripRange   = document.getElementById("tripRange");
+
+const ymd       = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const parseDay  = s => new Date(s + "T00:00:00");
+const addDays   = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const formatDay = s => parseDay(s).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" });
+const backDay   = (s, days) => ymd(addDays(parseDay(s), days - 1)); // วันกลับ = วันเดินทาง + (จำนวนวัน - 1)
+function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+
+let selectedDate = "";                              // วันที่เลือก เช่น "2026-12-25"
+let calMonth = addDays(startOfToday(), MIN_DAYS);   // เดือนที่กำลังแสดงในปฏิทิน
+calMonth.setDate(1);
+
+function renderCalendar() {
+  const first = addDays(startOfToday(), MIN_DAYS), last = addDays(startOfToday(), MAX_DAYS);
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  let cells = "<span></span>".repeat(new Date(y, m, 1).getDay()); // ช่องว่างก่อนวันที่ 1
+  for (let d = 1; d <= new Date(y, m + 1, 0).getDate(); d++) {
+    const key = ymd(new Date(y, m, d));
+    const open = key >= ymd(first) && key <= ymd(last); // เลือกได้เฉพาะช่วงที่จองล่วงหน้าได้
+    cells += `<button type="button" class="day ${key === selectedDate ? "selected" : ""}" data-date="${key}" ${open ? "" : "disabled"}>${d}</button>`;
+  }
+  const weekdays = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].map(w => `<b>${w}</b>`).join("");
+  calendarBox.innerHTML = `
+    <div class="cal-head">
+      <button type="button" class="cal-nav" data-cal="-1" aria-label="เดือนก่อนหน้า" ${new Date(y, m, 0) < first ? "disabled" : ""}>‹</button>
+      <strong>${calMonth.toLocaleDateString("th-TH", { month: "long", year: "numeric" })}</strong>
+      <button type="button" class="cal-nav" data-cal="1" aria-label="เดือนถัดไป" ${new Date(y, m + 1, 1) > last ? "disabled" : ""}>›</button>
+    </div>
+    <div class="cal-grid">${weekdays}${cells}</div>`;
+}
+
+// ข้อความใต้ปฏิทิน: วันเดินทาง - วันกลับ ตามจำนวนวันของทัวร์ที่เลือก
+function updateTrip() {
+  const t = tours.find(item => item.id === tourSelect.value);
+  tripRange.textContent = selectedDate
+    ? `เดินทาง ${formatDay(selectedDate)} – กลับ ${formatDay(backDay(selectedDate, t.days))} (${t.days} วัน)`
+    : `กรุณาเลือกวันเดินทางจากปฏิทิน (จองล่วงหน้าอย่างน้อย ${MIN_DAYS} วัน)`;
+}
+
+function resetCalendar() { selectedDate = ""; renderCalendar(); updateTrip(); }
+
+calendarBox.addEventListener("click", event => {
+  const { date, cal } = event.target.dataset;
+  if (cal) calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + Number(cal), 1);
+  if (date) { selectedDate = date; message.textContent = ""; updateTrip(); }
+  if (cal || date) renderCalendar();
+});
 // ===== 2.7) ภาพประกอบประเทศ (SVG วาดเอง) =====
 // อยากเปลี่ยนรูป: แก้ในไฟล์ images.js หรือใส่ photo: "ลิงก์รูป" ในข้อมูลทัวร์นั้น
 const scene = body => `<svg viewBox="0 0 300 100" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="-800" y="92" width="1900" height="30" fill="#fff" opacity=".22"/>${body}</svg>`;
