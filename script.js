@@ -262,6 +262,19 @@ function confirmCancel(code) {
     <p>การจองรหัส ${b.code} ถูกยกเลิก จะคืนเงิน <strong>${formatPrice(r.amount)}</strong></p>
     <div class="dialog-actions"><button class="btn" data-close>ตกลง</button></div>`;
 }
+// ===== 2.7) ภาพประกอบประเทศ (SVG วาดเอง) =====
+// อยากเปลี่ยนรูป: แก้ในไฟล์ images.js หรือใส่ photo: "ลิงก์รูป" ในข้อมูลทัวร์นั้น
+const scene = body => `<svg viewBox="0 0 300 100" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="-800" y="92" width="1900" height="30" fill="#fff" opacity=".22"/>${body}</svg>`;
+const arch = (x, base, top) => `<path class="cut" d="M${x} ${base}V${top + 6}a6 6 0 0 1 12 0V${base}Z"/>`;
+const scenes = {
+  japan: scene(`<circle cx="236" cy="34" r="18" fill="#fff" opacity=".9"/><path d="M60 92 150 18 240 92Z" fill="#fff" opacity=".35"/><path d="M128 36 150 18 172 36 162 33 150 40 138 33Z" fill="#fff"/><path d="M22 92V62M50 92V62M16 60H56M20 68H52" stroke="#fff" stroke-width="4" fill="none"/>`),
+  vietnam: scene(`<circle cx="70" cy="28" r="15" fill="#fff" opacity=".9"/><path d="M90 92C100 40 120 40 128 92ZM150 92C158 22 186 22 198 92ZM214 92C222 52 240 52 250 92Z" fill="#fff" opacity=".4"/><path d="M48 90V58L66 90Z" fill="#fff"/><path d="M38 90H74L69 98H43Z" fill="#fff"/>`),
+  italy: scene(`<rect x="70" y="30" width="160" height="62" fill="#fff" opacity=".88"/>${[0, 1, 2, 3, 4, 5].map(i => arch(82 + i * 25, 60, 40) + arch(82 + i * 25, 92, 68)).join("")}`),
+  swiss: scene(`<circle cx="42" cy="30" r="12" fill="#fff" opacity=".9"/><path d="M40 92 110 22 180 92Z" fill="#fff" opacity=".4"/><path d="M120 92 190 12 260 92Z" fill="#fff" opacity=".55"/><path d="M96 36 110 22 124 36 116 33 110 38 104 33Z" fill="#fff"/><path d="M176 30 190 12 204 30 196 27 190 34 184 27Z" fill="#fff"/>`)
+};
+const visual = t => t.photo ? `<img src="${t.photo}" alt="${t.country}" loading="lazy">` : (scenes[t.id] || "");
+
+
 // ===== 3) สร้างปุ่มกรองประเทศ =====
 function renderFilters() {
   const names = ["ทั้งหมด", ...tours.map(t => t.country)];
@@ -374,6 +387,7 @@ bookingForm.addEventListener("submit", event => {
   updateTotal();
   renderAuth();
   renderHistory();
+  resetCalendar();
   openTicket(booking.code);
 });
 
@@ -384,3 +398,4 @@ fillSelect();
 updateTotal();
 renderAuth();
 renderHistory();
+renderCalendar();
