@@ -394,26 +394,32 @@ function renderFilters() {
 
 // ===== 4) สร้างการ์ดทัวร์ตามประเทศที่เลือก =====
 function renderTours() {
-  const list = currentFilter === "ทั้งหมด"
-    ? tours
-    : tours.filter(t => t.country === currentFilter);
+  const list = tours.filter(t =>
+    (currentFilter === "ทั้งหมด" || t.country === currentFilter) &&
+    (currentTag === "ทุกสไตล์" || t.tags.includes(currentTag))
+  );
+
+  if (!list.length) {
+    tourGrid.innerHTML = `<p class="empty">ยังไม่มีทัวร์ที่ตรงกับตัวกรองนี้ ลองเลือกประเทศหรือสไตล์อื่นดูนะ</p>`;
+    return;
+  }
 
   tourGrid.innerHTML = list.map(t => `
     <article class="card" style="--theme:${t.color}">
-      <div class="card-top">${t.country}</div>
+      <div class="card-top">${visual(t)}<span class="card-country">${t.country}</span></div>
       <div class="card-body">
         <h3>${t.title}</h3>
         <p>${t.summary}</p>
-        <ul class="facts"><li>${t.days} วัน</li><li>${t.walk}</li></ul>
+        <div class="relax">${leaves(relaxFor(t))} <span>${RELAX_LABELS[relaxFor(t)]}</span></div>
+        <ul class="facts"><li>${t.days} วัน</li>${t.tags.map(tag => `<li>${tagLabel(tag)}</li>`).join("")}</ul>
         <div class="card-bottom">
-          <strong>${formatPrice(t.price)}</strong>
+          <strong>${formatPrice(priceFor(t))}</strong>
           <button class="btn small" data-id="${t.id}">ดูรายละเอียด</button>
         </div>
       </div>
     </article>
   `).join("");
 }
-
 // ===== 5) เปิดหน้าต่างรายละเอียดทัวร์ =====
 function openDetail(id) {
   const t = tours.find(item => item.id === id);
