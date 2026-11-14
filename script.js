@@ -491,6 +491,7 @@ bookingForm.addEventListener("submit", event => {
 
   message.textContent = `ขอบคุณคุณ${booking.name} รับจองทัวร์${t.country}เรียบร้อยแล้ว (${totalPrice.textContent})`;
   bookingForm.reset();
+  paceSelect.value = currentPace; // reset() จะคืนค่า select ให้ต้องตั้งกลับเป็นจังหวะที่เลือกไว้
   updateTotal();
   renderAuth();
   renderHistory();
@@ -499,10 +500,13 @@ bookingForm.addEventListener("submit", event => {
 });
 
 // ===== 8) เริ่มทำงานเมื่อเปิดหน้าเว็บ =====
+renderPace();
 renderFilters();
+renderTagFilters();
 renderTours();
 fillSelect();
 updateTotal();
 renderAuth();
 renderHistory();
 renderCalendar();
+updateTrip();
