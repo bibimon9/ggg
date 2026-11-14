@@ -382,7 +382,6 @@ const scenes = {
 };
 const visual = t => t.photo ? `<img src="${t.photo}" alt="${t.country}" loading="lazy">` : (scenes[t.id] || "");
 
-
 // ===== 3) สร้างปุ่มกรองประเทศ =====
 function renderFilters() {
   const names = ["ทั้งหมด", ...tours.map(t => t.country)];
