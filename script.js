@@ -421,19 +421,29 @@ function renderTours() {
   `).join("");
 }
 // ===== 5) เปิดหน้าต่างรายละเอียดทัวร์ =====
-function openDetail(id) {
+// สร้างเนื้อหาในหน้าต่างรายละเอียดตามจังหวะที่เลือก (เรียกซ้ำได้เมื่อกดเปลี่ยนจังหวะ)
+function renderDetail(id) {
   const t = tours.find(item => item.id === id);
-  const planHtml = t.plan.map(p => `<li><strong>${p.day}</strong> ${p.text}</li>`).join("");
+  detailId = id;
+  const planHtml = planFor(t).map(p => `<li><strong>${p.day}</strong> ${p.text}</li>`).join("");
 
   dialogBox.innerHTML = `
     <h3>${t.title}</h3>
+    <p class="pace-label">ปรับทริปให้เข้ากับฉัน</p>
+    <div class="pace-options mini" role="group" aria-label="เลือกจังหวะการเที่ยว">${paceButtons(true)}</div>
+    <p class="relax-detail">${leaves(relaxFor(t))} <strong>${RELAX_LABELS[relaxFor(t)]}</strong><br><small>${noteFor(t)}</small></p>
     <ul class="plan">${planHtml}</ul>
+    <p class="detail-price">ราคา <strong>${formatPrice(priceFor(t))}</strong> / คน</p>
     <div class="dialog-actions">
       <button class="btn" data-book="${t.id}">จองทัวร์นี้</button>
       <button class="btn ghost" data-close>ปิด</button>
     </div>
   `;
   dialog.style.setProperty("--theme", t.color); // เปลี่ยนสีขอบบนตามประเทศ
+}
+
+function openDetail(id) {
+  renderDetail(id);
   dialog.showModal();
 }
 
