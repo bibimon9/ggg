@@ -32,6 +32,8 @@
 
     <!-- ===== รายการทัวร์ (JavaScript จะสร้างการ์ดให้) ===== -->
     <section id="tours" class="section">
+      <!-- ปุ่มปรับทริปให้เข้ากับฉัน: ชิลล์ / สมดุล / จัดเต็ม (JavaScript จะสร้างปุ่มให้) -->
+      <div class="pace" id="paceBox"></div>
       <h2>เลือกประเทศที่อยากไป</h2>
       <div class="filters" id="filters"></div>
       <div class="tour-grid" id="tourGrid"></div>
@@ -47,9 +49,17 @@
         <label>เลือกทัวร์
           <select id="tourSelect"></select>
         </label>
+        <label>สไตล์ทริป
+          <select id="paceSelect"></select>
+        </label>
         <label>จำนวนผู้เดินทาง (คน)
           <input type="number" id="peopleInput" value="2" min="1" max="10" required>
         </label>
+        <div class="field">
+          <span class="field-label">วันเดินทาง</span>
+          <div class="calendar" id="calendar"></div>
+          <p class="trip-range" id="tripRange" role="status"></p>
+        </div>
         <p class="total">ราคารวม: <span id="totalPrice">-</span></p>
         <button class="btn" type="submit">ยืนยันการจอง</button>
         <p class="message" id="message" role="status"></p>
@@ -98,6 +108,12 @@
     <div class="dialog-inner" id="ticketContent"></div>
   </dialog>
 
+  <!-- หน้าต่างยืนยันยกเลิกการจอง -->
+  <dialog id="cancelDialog">
+    <div class="dialog-inner" id="cancelContent"></div>
+  </dialog>
+
+  <script src="images.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
