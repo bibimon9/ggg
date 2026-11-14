@@ -216,17 +216,28 @@ document.addEventListener("click", event => {
   }
 });
 
-// กด "ดูตั๋ว" ในประวัติการจอง
+// กด "ดูตั๋ว" / "ยกเลิก" ในประวัติการจอง
 historyList.addEventListener("click", event => {
-  const code = event.target.dataset.ticket;
-  if (code) openTicket(code);
+  const { ticket, cancel } = event.target.dataset;
+  if (ticket) openTicket(ticket);
+  if (cancel) openCancel(cancel);
 });
 
-// ปิดหน้าต่างล็อกอิน / ตั๋ว ด้วยปุ่มปิดหรือคลิกพื้นหลัง
-[authDialog, ticketDialog].forEach(d => d.addEventListener("click", event => {
+// ปิดหน้าต่างล็อกอิน / ตั๋ว / ยกเลิก ด้วยปุ่มปิดหรือคลิกพื้นหลัง
+[authDialog, ticketDialog, cancelDialog].forEach(d => d.addEventListener("click", event => {
   if (event.target === d || event.target.dataset.close !== undefined) d.close();
 }));
+// กด "ยกเลิกการจอง" ในหน้าต่างตั๋ว
+ticketDialog.addEventListener("click", event => {
+  const code = event.target.dataset.cancelFromTicket;
+  if (code) openCancel(code);
+});
 
+// กด "ยืนยันยกเลิก" ในหน้าต่างยกเลิก
+cancelDialog.addEventListener("click", event => {
+  const code = event.target.dataset.confirmCancel;
+  if (code) confirmCancel(code);
+});
  // ===== นโยบายยกเลิก: ยกเลิกก่อนวันเดินทางกี่วัน -> คืนเงินกี่ % (แก้ตัวเลขได้ตามต้องการ) =====
 const REFUND_RULES = [
   { minDays: 30, percent: 100 },
