@@ -558,13 +558,14 @@ dialog.addEventListener("click", event => {
   }
 });
 
-tourSelect.addEventListener("change", updateTotal);
+tourSelect.addEventListener("change", () => { updateTotal(); updateTrip(); });
 peopleInput.addEventListener("input", updateTotal);
 
 bookingForm.addEventListener("submit", event => {
   event.preventDefault(); // กันไม่ให้หน้าเว็บรีโหลด
   const user = currentUser();
   if (!user) { openAuth("login", "กรุณาเข้าสู่ระบบก่อนจองทัวร์"); return; }
+  if (!selectedDate) { message.textContent = "กรุณาเลือกวันเดินทางจากปฏิทินก่อนยืนยันการจอง"; return; }
 
   const t = tours.find(item => item.id === tourSelect.value);
   const people = Number(peopleInput.value);
@@ -572,6 +573,8 @@ bookingForm.addEventListener("submit", event => {
     code: "ST-" + Math.random().toString(36).slice(2, 8).toUpperCase(), // รหัสจอง เช่น ST-K3F9A2
     email: user.email, name: nameInput.value.trim(), tourId: t.id,
     people, total: t.price * people, date: new Date().toISOString()
+    pace: currentPace, // สไตล์ทริปที่เลือก (ชิลล์ / สมดุล / จัดเต็ม)
+    travelDate: selectedDate // วันเดินทาง ใช้คำนวณเงินคืนตอนยกเลิก
   };
   save("st_bookings", [...load("st_bookings", []), booking]);
 
