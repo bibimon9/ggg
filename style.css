@@ -220,13 +220,21 @@ dialog::backdrop { background: rgba(16, 48, 60, 0.6); }
 .ticket-info dt { color: var(--muted); font-size: 0.9rem; }
 .ticket-info dd { font-weight: 600; }
 
-/* ===== 11) ยกเลิกการจอง ===== */
-.history-actions { display: flex; gap: 0.5rem; }
-.history-item.cancelled { opacity: 0.65; border-left-color: var(--muted); }
-.badge { display: inline-block; margin-top: 0.3rem; padding: 0 0.6rem; border-radius: 6px; background: #fbe9e7; color: #c0392b; font-weight: 600; }
-.refund-note { margin: 0.8rem 0; padding: 0.6rem 0.9rem; border-radius: 8px; background: var(--bg); }
-.btn.danger { background: #c0392b; color: #fff; }
-#cancelContent .empty { margin-bottom: 1rem; }
+/* ===== 11) ปฏิทินเลือกวันเดินทาง ===== */
+.field { display: grid; gap: 0.3rem; }
+.field-label { font-weight: 600; }
+.calendar { background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 0.8rem; }
+.cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.cal-nav { background: none; border: 0; font-size: 1.5rem; line-height: 1; padding: 0.2rem 0.7rem; border-radius: 8px; cursor: pointer; color: var(--ink); }
+.cal-nav:hover:not(:disabled) { background: var(--bg); }
+.cal-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.cal-grid b { font-size: 0.85rem; color: var(--muted); }
+.day { aspect-ratio: 1; border: 0; border-radius: 8px; background: transparent; font: inherit; color: var(--ink); cursor: pointer; }
+.day:hover:not(:disabled) { background: var(--bg); }
+.day:disabled { color: #b9c6ca; cursor: not-allowed; }
+.day.selected { background: var(--ink); color: #fff; font-weight: 600; }
+.trip-range { color: var(--muted); font-size: 0.95rem; }
 
 /* ===== 12) ปรับทริปให้เข้ากับฉัน (ชิลล์ / สมดุล / จัดเต็ม) ===== */
 .pace { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 1.2rem; margin-bottom: 2.5rem; }
