@@ -40,13 +40,13 @@ const tours = [
     // ปรับตามสไตล์ทริป: chill = ชิลล์, packed = จัดเต็ม (สมดุล = plan ด้านล่าง)
     variants: {
       chill: [
-      { day: "วัน 1", text: "ฮานอย: เดินเล่นเมืองเก่าและทะเลสาบคืนดาบ พักก่อนชมหุ่นกระบอกน้ำตอนเย็น" },
+        { day: "วัน 1", text: "ฮานอย: เดินเล่นเมืองเก่าและทะเลสาบคืนดาบ พักก่อนชมหุ่นกระบอกน้ำตอนเย็น" },
         { day: "วัน 2", text: "อ่าวฮาลอง: ล่องเรือชมเกาะหินปูน จะพายคายัคหรือนั่งชมวิวเฉย ๆ ก็ได้" },
         { day: "วัน 3", text: "ดานัง: นอนริมหาดหมีเคะ แล้วขึ้นบานาฮิลล์ช่วงบ่ายหลังคนซา" },
         { day: "วัน 4–5", text: "ฮอยอัน: เมืองเก่าและโคมไฟยามค่ำ มีเวลาว่างเลือกร้านกาแฟเอง แล้วเดินทางกลับ" }
     ],
-      packed: [
-    { day: "วัน 1", text: "ฮานอย: เมืองเก่า ทะเลสาบคืนดาบ วัดวรรณกรรม และชมหุ่นกระบอกน้ำ" },
+    packed: [
+        { day: "วัน 1", text: "ฮานอย: เมืองเก่า ทะเลสาบคืนดาบ วัดวรรณกรรม และชมหุ่นกระบอกน้ำ" },
         { day: "วัน 2", text: "อ่าวฮาลอง: ล่องเรือ พายคายัค เข้าถ้ำ และปีนจุดชมวิวบนเกาะ" },
         { day: "วัน 3", text: "ดานัง: หาดหมีเคะ สะพานมือ (บานาฮิลล์) และภูเขาหินอ่อน" },
         { day: "วัน 4–5", text: "ฮอยอัน: เมืองเก่า ล่องเรือกระด้ง เวิร์กชอปทำโคมไฟ แล้วเดินทางกลับ" }
@@ -115,6 +115,7 @@ const tours = [
       { day: "วัน 6–7", text: "แบร์น: เมืองเก่ามรดกโลก ก่อนบินกลับ" }
       ]
   }
+];
 
 // ===== 2) เรียก element จากหน้า HTML มาเก็บในตัวแปร =====
 const filtersBox   = document.getElementById("filters");
@@ -241,10 +242,15 @@ function openTicket(code) {
       <div><dt>ผู้จอง</dt><dd>${esc(b.name)}</dd></div>
       <div><dt>ผู้เดินทาง</dt><dd>${b.people} คน</dd></div>
       <div><dt>ระยะเวลา</dt><dd>${t.days} วัน</dd></div>
+      ${b.pace ? `<div><dt>สไตล์ทริป</dt><dd>${paceTag(b.pace)}</dd></div>` : ""}
       <div><dt>ราคารวม</dt><dd>${formatPrice(b.total)}</dd></div>
+      ${b.travelDate ? `<div><dt>วันเดินทาง</dt><dd>${formatDay(b.travelDate)}</dd></div><div><dt>วันกลับ</dt><dd>${formatDay(backDay(b.travelDate, t.days))}</dd></div>` : ""}
       <div><dt>วันที่จอง</dt><dd>${formatDate(b.date)}</dd></div>
-    </dl>
-    <div class="dialog-actions"><button class="btn ghost" data-close>ปิด</button></div>
+   </dl>
+   <div class="dialog-actions">
+      ${canCancel(b) ? `<button class="btn ghost" data-cancel-from-ticket="${b.code}">ยกเลิกการจอง</button>` : ""}
+      <button class="btn ghost" data-close>ปิด</button>
+    </div>
   `;
   ticketDialog.style.setProperty("--theme", t.color);
   if (!ticketDialog.open) ticketDialog.showModal();
@@ -297,6 +303,7 @@ historyList.addEventListener("click", event => {
 [authDialog, ticketDialog, cancelDialog].forEach(d => d.addEventListener("click", event => {
   if (event.target === d || event.target.dataset.close !== undefined) d.close();
 }));
+
 // กด "ยกเลิกการจอง" ในหน้าต่างตั๋ว
 ticketDialog.addEventListener("click", event => {
   const code = event.target.dataset.cancelFromTicket;
@@ -308,6 +315,7 @@ cancelDialog.addEventListener("click", event => {
   const code = event.target.dataset.confirmCancel;
   if (code) confirmCancel(code);
 });
+
  // ===== นโยบายยกเลิก: ยกเลิกก่อนวันเดินทางกี่วัน -> คืนเงินกี่ % (แก้ตัวเลขได้ตามต้องการ) =====
 const REFUND_RULES = [
   { minDays: 30, percent: 100 },
@@ -452,6 +460,98 @@ const scenes = {
 };
 const visual = t => t.photo ? `<img src="${t.photo}" alt="${t.country}" loading="lazy">` : (scenes[t.id] || "");
 
+// ===== 2.8) ระบบ "สไตล์ทริป" และ "ระดับความผ่อนคลาย" (แทนตัวนับก้าวเดิม) =====
+// อยากเพิ่มสไตล์ใหม่: ใส่ชื่อใน tags ของทัวร์ แล้วใส่ไอคอนที่นี่
+const TAG_ICONS = { "สายกิน": "🍜", "สายถ่ายรูป": "📷", "สายพักผ่อน": "🛁", "สายวัฒนธรรม": "⛩️", "สายทะเล": "🏖️", "สายธรรมชาติ": "🏔️" };
+const RELAX_LABELS = ["", "จัดเต็ม", "ค่อนข้างแน่น", "กำลังดี", "สบาย ๆ", "ชิลล์สุด"];
+
+let currentTag = "ทุกสไตล์"; // สไตล์ทริปที่กำลังเลือกอยู่
+
+const tagLabel = tag => `${TAG_ICONS[tag] || "✨"} ${tag}`;
+// ใบไม้ 1–5 ใบ: ใบที่เต็มคือระดับความผ่อนคลาย
+const leaves = n => `<span class="leaves" role="img" aria-label="ผ่อนคลาย ${n} จาก 5">${"🍃".repeat(n)}<span class="dim">${"🍃".repeat(5 - n)}</span></span>`;
+
+// กล่องปุ่มกรองสไตล์ทริป (สร้างต่อท้ายปุ่มกรองประเทศ)
+const tagFiltersBox = document.createElement("div");
+tagFiltersBox.className = "filters tag-filters";
+tagFiltersBox.setAttribute("aria-label", "กรองตามสไตล์ทริป");
+filtersBox.after(tagFiltersBox);
+
+function renderTagFilters() {
+  const all = [...new Set(tours.flatMap(t => t.tags))];
+  tagFiltersBox.innerHTML = ["ทุกสไตล์", ...all].map(tag =>
+    `<button class="chip small ${tag === currentTag ? "active" : ""}" data-tag="${tag}">${tag === "ทุกสไตล์" ? tag : tagLabel(tag)}</button>`
+  ).join("");
+}
+
+tagFiltersBox.addEventListener("click", event => {
+  const tag = event.target.dataset.tag;
+  if (!tag) return;
+  currentTag = tag;
+  renderTagFilters();
+  renderTours();
+});
+
+// ===== 2.9) ปรับทริปให้เข้ากับฉัน: ชิลล์ / สมดุล / จัดเต็ม =====
+// factor = ตัวคูณราคา (ชิลล์ทำกิจกรรมน้อยลงจึงถูกลง, จัดเต็มได้เที่ยวและตั๋วเข้าชมเพิ่มจึงแพงขึ้น)
+// relaxDelta = ปรับระดับใบไม้ขึ้น/ลง   (แก้ตัวเลขตรงนี้ได้เลย)
+const PACES = {
+  chill:   { icon: "🛋️", label: "ชิลล์",   factor: 0.92, relaxDelta: +1, desc: "ไม่เร่ง วันละไม่กี่จุด",
+             note: "ตื่นสาย ไม่เกิน 2 จุดต่อวัน มีเวลาพักกลางวันยาว ๆ" ,
+             summary: "ทริปช้า ๆ เน้นนั่งพัก ชิมอาหาร ชมวิว ราคาลดลงประมาณ 8% เพราะกิจกรรมน้อยลง" },
+  balance: { icon: "⚖️", label: "สมดุล",   factor: 1,    relaxDelta: 0,  desc: "ครบแต่ไม่เหนื่อย",
+             note: "",
+             summary: "โปรแกรมมาตรฐานของแพ็กเกจ เที่ยวครบจุดเด่นและมีเวลาพักทุกวัน" },
+  packed:  { icon: "⚡", label: "จัดเต็ม", factor: 1.15, relaxDelta: -1, desc: "เก็บให้ครบทุกมุม",
+             note: "ตื่นเช้า เก็บจุดเด่นให้ครบ พักสั้นลงแต่ได้เห็นเยอะที่สุด" ,
+             summary: "ทริปแน่น เพิ่มสถานที่และตั๋วเข้าชม ราคาเพิ่มขึ้นประมาณ 15%" }
+};
+let currentPace = "balance";
+const paceBox    = document.getElementById("paceBox");
+const paceSelect = document.getElementById("paceSelect");
+let detailId = null; // ทัวร์ที่กำลังเปิดดูรายละเอียดอยู่
+
+const planFor  = (t, pace = currentPace) => (pace !== "balance" && t.variants && t.variants[pace]) || t.plan;
+const priceFor = (t, pace = currentPace) => Math.round(t.price * PACES[pace].factor / 100) * 100;
+const relaxFor = (t, pace = currentPace) => Math.min(5, Math.max(1, t.relax + PACES[pace].relaxDelta));
+const noteFor  = (t, pace = currentPace) => PACES[pace].note || t.relaxNote;
+const paceTag  = pace => PACES[pace] ? `${PACES[pace].icon} ${PACES[pace].label}` : "";
+
+// ปุ่มเลือกจังหวะ (ใช้ทั้งในหน้าหลักและในหน้าต่างรายละเอียด)
+const paceButtons = (mini = false) => Object.entries(PACES).map(([key, p]) => `
+  <button type="button" class="pace-btn ${key === currentPace ? "active" : ""}" data-pace="${key}" aria-pressed="${key === currentPace}">
+    <span class="pace-icon" aria-hidden="true">${p.icon}</span>
+    <strong>${p.label}</strong>${mini ? "" : `<small>${p.desc}</small>`}
+  </button>`).join("");
+
+function renderPace() {
+  paceBox.innerHTML = `
+    <h3>ปรับทริปให้เข้ากับฉัน</h3>
+    <div class="pace-options" role="group" aria-label="เลือกจังหวะการเที่ยว">${paceButtons()}</div>
+    <p class="pace-summary">${PACES[currentPace].summary}</p>`;
+  if (!paceSelect.options.length) {
+    paceSelect.innerHTML = Object.entries(PACES).map(([k, p]) => `<option value="${k}">${paceTag(k)}</option>`).join("");
+  }
+  paceSelect.value = currentPace;
+}
+
+// เปลี่ยนจังหวะ -> อัปเดตการ์ด ราคารวมในฟอร์มจอง และหน้าต่างรายละเอียดที่เปิดอยู่
+function setPace(pace) {
+  if (!PACES[pace]) return;
+  currentPace = pace;
+  renderPace();
+  renderTours();
+  updateTotal();
+  if (dialog.open && detailId) renderDetail(detailId);
+}
+
+// กดปุ่มจังหวะที่ไหนก็ได้ (ใช้ closest เพราะอาจกดโดนไอคอน/ตัวหนังสือในปุ่ม)
+document.addEventListener("click", event => {
+  const btn = event.target.closest("[data-pace]");
+  if (btn) setPace(btn.dataset.pace);
+});
+paceSelect.addEventListener("change", () => setPace(paceSelect.value));
+
 // ===== 3) สร้างปุ่มกรองประเทศ =====
 function renderFilters() {
   const names = ["ทั้งหมด", ...tours.map(t => t.country)];
@@ -460,12 +560,17 @@ function renderFilters() {
   ).join("");
 }
 
-// ===== 4) สร้างการ์ดทัวร์ตามประเทศที่เลือก =====
+// ===== 4) สร้างการ์ดทัวร์ตามประเทศและสไตล์ที่เลือก =====
 function renderTours() {
   const list = tours.filter(t =>
     (currentFilter === "ทั้งหมด" || t.country === currentFilter) &&
     (currentTag === "ทุกสไตล์" || t.tags.includes(currentTag))
   );
+
+  if (!list.length) {
+    tourGrid.innerHTML = `<p class="empty">ยังไม่มีทัวร์ที่ตรงกับตัวกรองนี้ ลองเลือกประเทศหรือสไตล์อื่นดูนะ</p>`;
+    return;
+  }
 
   if (!list.length) {
     tourGrid.innerHTML = `<p class="empty">ยังไม่มีทัวร์ที่ตรงกับตัวกรองนี้ ลองเลือกประเทศหรือสไตล์อื่นดูนะ</p>`;
@@ -488,6 +593,7 @@ function renderTours() {
     </article>
   `).join("");
 }
+
 // ===== 5) เปิดหน้าต่างรายละเอียดทัวร์ =====
 // สร้างเนื้อหาในหน้าต่างรายละเอียดตามจังหวะที่เลือก (เรียกซ้ำได้เมื่อกดเปลี่ยนจังหวะ)
 function renderDetail(id) {
