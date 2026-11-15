@@ -691,7 +691,8 @@ bookingForm.addEventListener("submit", event => {
 });
 
 // ===== 8) เริ่มทำงานเมื่อเปิดหน้าเว็บ =====
-renderPace();
+function initApp() {
+renderPace();// ตรวจสอบชื่อฟังก์ชันให้ตรงกับที่ประกาศไว้
 renderFilters();
 renderTagFilters();
 renderTours();
@@ -701,3 +702,6 @@ renderAuth();
 renderHistory();
 renderCalendar();
 updateTrip();
+}
+
+document.addEventListener("DOMContentLoaded",initApp);
