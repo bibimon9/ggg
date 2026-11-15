@@ -460,6 +460,7 @@ const scenes = {
 };
 const visual = t => t.photo ? `<img src="${t.photo}" alt="${t.country}" loading="lazy">` : (scenes[t.id] || "");
 
+
 // ===== 2.8) ระบบ "สไตล์ทริป" และ "ระดับความผ่อนคลาย" (แทนตัวนับก้าวเดิม) =====
 // อยากเพิ่มสไตล์ใหม่: ใส่ชื่อใน tags ของทัวร์ แล้วใส่ไอคอนที่นี่
 const TAG_ICONS = { "สายกิน": "🍜", "สายถ่ายรูป": "📷", "สายพักผ่อน": "🛁", "สายวัฒนธรรม": "⛩️", "สายทะเล": "🏖️", "สายธรรมชาติ": "🏔️" };
@@ -566,11 +567,6 @@ function renderTours() {
     (currentFilter === "ทั้งหมด" || t.country === currentFilter) &&
     (currentTag === "ทุกสไตล์" || t.tags.includes(currentTag))
   );
-
-  if (!list.length) {
-    tourGrid.innerHTML = `<p class="empty">ยังไม่มีทัวร์ที่ตรงกับตัวกรองนี้ ลองเลือกประเทศหรือสไตล์อื่นดูนะ</p>`;
-    return;
-  }
 
   if (!list.length) {
     tourGrid.innerHTML = `<p class="empty">ยังไม่มีทัวร์ที่ตรงกับตัวกรองนี้ ลองเลือกประเทศหรือสไตล์อื่นดูนะ</p>`;
