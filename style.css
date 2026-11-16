@@ -219,8 +219,14 @@ dialog::backdrop { background: rgba(16, 48, 60, 0.6); }
 .ticket-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem; }
 .ticket-info dt { color: var(--muted); font-size: 0.9rem; }
 .ticket-info dd { font-weight: 600; }
-
-/* ===== 11) ปฏิทินเลือกวันเดินทาง ===== */
+/* ===== 11) ยกเลิกการจอง ===== */
+.history-actions { display: flex; gap: 0.5rem; }
+.history-item.cancelled { opacity: 0.65; border-left-color: var(--muted); }
+.badge { display: inline-block; margin-top: 0.3rem; padding: 0 0.6rem; border-radius: 6px; background: #fbe9e7; color: #c0392b; font-weight: 600; }
+.refund-note { margin: 0.8rem 0; padding: 0.6rem 0.9rem; border-radius: 8px; background: var(--bg); }
+.btn.danger { background: #c0392b; color: #fff; }
+#cancelContent .empty { margin-bottom: 1rem; }
+/* ===== 12) ปฏิทินเลือกวันเดินทาง ===== */
 .field { display: grid; gap: 0.3rem; }
 .field-label { font-weight: 600; }
 .calendar { background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: 0.8rem; }
@@ -236,7 +242,7 @@ dialog::backdrop { background: rgba(16, 48, 60, 0.6); }
 .day.selected { background: var(--ink); color: #fff; font-weight: 600; }
 .trip-range { color: var(--muted); font-size: 0.95rem; }
 
-/* ===== 12) ปรับทริปให้เข้ากับฉัน (ชิลล์ / สมดุล / จัดเต็ม) ===== */
+/* ===== 13) ปรับทริปให้เข้ากับฉัน (ชิลล์ / สมดุล / จัดเต็ม) ===== */
 .pace { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 1.2rem; margin-bottom: 2.5rem; }
 .pace h3 { font-size: 1.25rem; margin-bottom: 0.8rem; }
 .pace-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
