@@ -24,7 +24,7 @@ const tours = [
       { day: "วัน 5–6", text: "เกียวโต–โอซาก้า: วัดคิโยมิสึ ปราสาทโอซาก้า แล้วบินกลับ" }
     ]
   },
-  plan: {
+  plan: [
       { day: "วัน 1–2", text: "โตเกียว: อาซากุสะ ชิบูย่า และย่านช้อปปิ้ง" },
       { day: "วัน 3", text: "ภูเขาไฟฟูจิ: ล่องเรือทะเลสาบคาวากูจิโกะ" },
       { day: "วัน 4", text: "นั่งชินคันเซนไปเกียวโต: ศาลเจ้าฟูชิมิ อินาริ" },
@@ -674,7 +674,7 @@ bookingForm.addEventListener("submit", event => {
   const booking = {
     code: "ST-" + Math.random().toString(36).slice(2, 8).toUpperCase(), // รหัสจอง เช่น ST-K3F9A2
     email: user.email, name: nameInput.value.trim(), tourId: t.id,
-    people, total: t.price * people, date: new Date().toISOString()
+    people, total: t.price * people, date: new Date().toISOString(),
     pace: currentPace, // สไตล์ทริปที่เลือก (ชิลล์ / สมดุล / จัดเต็ม)
     travelDate: selectedDate // วันเดินทาง ใช้คำนวณเงินคืนตอนยกเลิก
   };
